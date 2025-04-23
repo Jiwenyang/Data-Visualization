@@ -6,150 +6,150 @@ from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
 
-# 全局变量
+# Global variables
 OUTPUT_DIR = 'visualizations'
 PROCESSED_DATA_DIR = 'processed_data'
 ANALYSIS_RESULTS_DIR = 'analysis_results'
 
-# ============== 数据分析模块 ==============
+# ============== Data Analysis Module ==============
 
 def analyze_csv_file(file_path):
-    """分析CSV文件并显示基本统计信息，只生成文本报告"""
-    print(f"\n正在分析文件: {file_path}")
+    """Analyze CSV file and display basic statistics, only generate text report"""
+    print(f"\nAnalyzing file: {file_path}")
     
-    # 尝试读取文件，显示加载进度
-    print("正在加载数据，这可能需要一些时间...")
+    # Try to read file, show loading progress
+    print("Loading data, this may take some time...")
     df = pd.read_csv(file_path)
     
-    # 显示基本信息
-    print(f"\n数据集形状: {df.shape[0]} 行 x {df.shape[1]} 列")
-    print("\n列名:")
+    # Show basic info
+    print(f"\nDataset shape: {df.shape[0]} rows x {df.shape[1]} columns")
+    print("\nColumn names:")
     for col in df.columns:
         print(f"- {col}")
     
-    # 显示前5行数据
-    print("\n数据前5行:")
+    # Show first 5 rows
+    print("\nFirst 5 rows of data:")
     print(df.head())
     
-    # 数据类型和缺失值情况
-    print("\n数据类型和缺失值情况:")
+    # Data types and missing values
+    print("\nData types and missing values:")
     dtypes_missing = pd.DataFrame({
-        '数据类型': df.dtypes,
-        '非空值数量': df.count(),
-        '缺失值数量': df.isnull().sum(),
-        '缺失值百分比': (df.isnull().sum() / len(df) * 100).round(2)
+        'Data Type': df.dtypes,
+        'Non-null Count': df.count(),
+        'Missing Count': df.isnull().sum(),
+        'Missing Percentage': (df.isnull().sum() / len(df) * 100).round(2)
     })
     print(dtypes_missing)
     
-    # 数值列的基本统计信息
-    print("\n数值列的基本统计信息:")
+    # Basic stats for numerical columns
+    print("\nBasic statistical information for numerical columns:")
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     if len(numeric_cols) > 0:
         print(df[numeric_cols].describe().T)
     else:
-        print("没有数值型列")
+        print("No numerical columns")
     
-    # 文本列的基本统计信息
+    # Basic stats for text columns
     text_cols = df.select_dtypes(include=['object']).columns
     if len(text_cols) > 0:
-        print("\n文本列的基本统计信息:")
+        print("\nBasic statistical information for text columns:")
         for col in text_cols:
             unique_values = df[col].nunique()
             most_common = df[col].value_counts().head(5)
-            print(f"\n列 '{col}':")
-            print(f"  - 唯一值数量: {unique_values}")
-            print(f"  - 前5个最常见值:")
+            print(f"\nColumn '{col}':")
+            print(f"  - Unique values: {unique_values}")
+            print(f"  - Top 5 most common values:")
             for val, count in most_common.items():
-                print(f"    * {val}: {count} 次 ({count/len(df):.2%})")
+                print(f"    * {val}: {count} times ({count/len(df):.2%})")
     else:
-        print("\n没有文本列")
+        print("\nNo text columns")
     
-    # 创建结果目录
+    # Create results directory
     if not os.path.exists(ANALYSIS_RESULTS_DIR):
         os.makedirs(ANALYSIS_RESULTS_DIR)
     
-    # 文件名（不带扩展名）
+    # Filename (without extension)
     base_filename = os.path.splitext(os.path.basename(file_path))[0]
     
-    # 保存摘要信息到文本文件
+    # Save summary to text file
     with open(f"{ANALYSIS_RESULTS_DIR}/{base_filename}_summary.txt", "w") as f:
-        f.write(f"数据分析报告 - {file_path}\n")
-        f.write(f"生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-        f.write(f"数据集形状: {df.shape[0]} 行 x {df.shape[1]} 列\n\n")
-        f.write("列名:\n")
+        f.write(f"Data Analysis Report - {file_path}\n")
+        f.write(f"Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+        f.write(f"Dataset shape: {df.shape[0]} rows x {df.shape[1]} columns\n\n")
+        f.write("Columns:\n")
         for col in df.columns:
             f.write(f"- {col}\n")
         
-        f.write("\n数据类型和缺失值情况:\n")
+        f.write("\nData types and missing values:\n")
         f.write(dtypes_missing.to_string())
         
         if len(numeric_cols) > 0:
-            f.write("\n\n数值列的基本统计信息:\n")
+            f.write("\n\nBasic statistical information for numerical columns:\n")
             f.write(df[numeric_cols].describe().T.to_string())
         
         if len(text_cols) > 0:
-            f.write("\n\n文本列的基本统计信息:\n")
+            f.write("\n\nBasic statistical information for text columns:\n")
             for col in text_cols:
                 unique_values = df[col].nunique()
                 most_common = df[col].value_counts().head(5)
-                f.write(f"\n列 '{col}':\n")
-                f.write(f"  - 唯一值数量: {unique_values}\n")
-                f.write(f"  - 前5个最常见值:\n")
+                f.write(f"\nColumn '{col}':\n")
+                f.write(f"  - Unique values: {unique_values}\n")
+                f.write(f"  - Top 5 most common values:\n")
                 for val, count in most_common.items():
-                    f.write(f"    * {val}: {count} 次 ({count/len(df):.2%})\n")
+                    f.write(f"    * {val}: {count} times ({count/len(df):.2%})\n")
     
-    print(f"\n摘要信息已保存到 {ANALYSIS_RESULTS_DIR}/{base_filename}_summary.txt")
-    print("\n分析完成!")
+    print(f"\nSummary saved to {ANALYSIS_RESULTS_DIR}/{base_filename}_summary.txt")
+    print("\nAnalysis complete!")
     
     return df
 
-# ============== 数据处理模块 ==============
+# ============== Data Processing Module ==============
 
 def load_and_process_data(file_path='Results_21Mar2022.csv'):
     """
-    加载并处理饮食与环境影响数据
+    Load and process diet and environmental impact data
     """
-    print(f"正在加载数据: {file_path}")
+    print(f"Loading data: {file_path}")
     df = pd.read_csv(file_path)
     
-    # 检查数据结构
-    print(f"数据形状: {df.shape}")
-    print(f"列名: {df.columns.tolist()}")
+    # Check data structure
+    print(f"Data shape: {df.shape}")
+    print(f"Columns: {df.columns.tolist()}")
     
-    # 提取主要环境影响指标列
+    # Extract main environmental impact indicator columns
     env_impact_cols = [col for col in df.columns if col.startswith('mean_') and not col.startswith('mean_ghgs_')]
-    env_impact_cols += ['mean_ghgs_ch4', 'mean_ghgs_n2o']  # 添加特定的温室气体指标
+    env_impact_cols += ['mean_ghgs_ch4', 'mean_ghgs_n2o']  # Add specific greenhouse gas indicators
     
-    # 创建聚合的数据集，按饮食类型、性别和年龄组分组
+    # Create aggregated dataset grouped by diet type, gender, and age group
     agg_data = {}
     
-    # 1. 按饮食类型聚合
+    # 1. Aggregate by diet type
     diet_agg = df.groupby('diet_group')[env_impact_cols].mean().reset_index()
     agg_data['diet'] = diet_agg
     
-    # 2. 按饮食类型和性别聚合
+    # 2. Aggregate by diet type and gender
     diet_sex_agg = df.groupby(['diet_group', 'sex'])[env_impact_cols].mean().reset_index()
     agg_data['diet_sex'] = diet_sex_agg
     
-    # 3. 按饮食类型和年龄组聚合
+    # 3. Aggregate by diet type and age group
     diet_age_agg = df.groupby(['diet_group', 'age_group'])[env_impact_cols].mean().reset_index()
     agg_data['diet_age'] = diet_age_agg
     
-    # 4. 计算饮食类型的环境影响总排名
-    # 对每个环境指标进行归一化处理，使得所有指标在相同的比例下
+    # 4. Calculate overall environmental impact ranking for diet types
+    # Normalize all indicators to same scale
     norm_data = diet_agg.copy()
     for col in env_impact_cols:
         max_val = norm_data[col].max()
         min_val = norm_data[col].min()
         norm_data[col] = (norm_data[col] - min_val) / (max_val - min_val)
     
-    # 计算总体环境影响得分（越低越好）
+    # Calculate total environmental impact score (lower is better)
     norm_data['total_env_impact'] = norm_data[env_impact_cols].sum(axis=1)
     norm_data = norm_data.sort_values('total_env_impact')
     agg_data['diet_ranked'] = norm_data
     
-    # 5. 创建用于雷达图的数据
-    # 计算每种饮食类型相对于其他饮食类型的百分比值
+    # 5. Create data for radar chart
+    # Calculate percentage values relative to other diet types
     radar_data = diet_agg.copy()
     for col in env_impact_cols:
         max_val = radar_data[col].max()
@@ -157,72 +157,72 @@ def load_and_process_data(file_path='Results_21Mar2022.csv'):
     
     agg_data['radar'] = radar_data
     
-    # 6. 计算年龄组和性别对环境影响的交互效应
+    # 6. Calculate interaction effects between age groups and gender
     interaction_data = df.groupby(['diet_group', 'sex', 'age_group'])[env_impact_cols].mean().reset_index()
     agg_data['interaction'] = interaction_data
     
-    # 7. 环境影响指标之间的相关性分析
+    # 7. Correlation analysis between environmental impact indicators
     correlation = df[env_impact_cols].corr()
     agg_data['correlation'] = correlation
     
     return df, agg_data
 
 def get_env_impact_description():
-    """返回环境影响指标的描述"""
+    """Return descriptions for environmental impact indicators"""
     descriptions = {
-        'mean_ghgs': '平均温室气体排放量 (kg)',
-        'mean_land': '平均农业用地面积 (m²)',
-        'mean_watscar': '平均缺水量',
-        'mean_eut': '平均富营养化潜能 (gPOe)',
-        'mean_ghgs_ch4': '畜牧业管理中甲烷排放的平均温室气体 (kg)',
-        'mean_ghgs_n2o': '与化肥使用相关的N₂O排放产生的平均温室气体',
-        'mean_bio': '平均生物多样性影响 (每天物种灭绝)',
-        'mean_watuse': '平均农业用水量 (m³)',
-        'mean_acid': '平均酸化潜力'
+        'mean_ghgs': 'Average greenhouse gas emissions (kg)',
+        'mean_land': 'Average agricultural land use (m²)',
+        'mean_watscar': 'Average water scarcity',
+        'mean_eut': 'Average eutrophication potential (gPOe)',
+        'mean_ghgs_ch4': 'Average methane emissions from livestock management (kg)',
+        'mean_ghgs_n2o': 'Average N₂O emissions from fertilizer use (kg)',
+        'mean_bio': 'Average biodiversity impact (daily species extinction)',
+        'mean_watuse': 'Average agricultural water use (m³)',
+        'mean_acid': 'Average acidification potential'
     }
     return descriptions
 
 def get_diet_colors():
-    """返回饮食类型的配色方案"""
+    """Return color scheme for diet types"""
     colors = {
-        'vegan': '#2ca02c',       # 绿色
-        'vegetarian': '#98df8a',  # 浅绿色
-        'pescatarian': '#1f77b4', # 蓝色
-        'fish': '#1f77b4',        # 蓝色 (与pescatarian相同)
-        'meat50': '#ff7f0e',      # 橙色
-        'meat': '#d62728',        # 红色
-        'meat100': '#d62728'      # 红色 (与meat相同)
+        'vegan': '#2ca02c',       # Green
+        'vegetarian': '#98df8a',  # Light green
+        'pescatarian': '#1f77b4', # Blue
+        'fish': '#1f77b4',        # Blue (same as pescatarian)
+        'meat50': '#ff7f0e',      # Orange
+        'meat': '#d62728',        # Red
+        'meat100': '#d62728'      # Red (same as meat)
     }
     return colors
 
 def save_processed_data(agg_data, output_dir=PROCESSED_DATA_DIR):
-    """保存处理后的数据到CSV文件"""
+    """Save processed data to CSV files"""
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
         
     for key, data in agg_data.items():
         data.to_csv(f"{output_dir}/{key}_data.csv", index=False)
     
-    print(f"处理后的数据已保存到 {output_dir} 目录")
+    print(f"Processed data saved to {output_dir} directory")
 
-# ============== 可视化模块 ==============
+# ============== Visualization Module ==============
 
 def create_alluvial_diagram(diet_data, output_file='diet_environmental_impact_alluvial.html'):
-    """创建冲积图(桑基图)展示饮食类型与多个环境影响指标的关系"""
-    # 获取环境影响指标的描述
+    """Create alluvial diagram (Sankey diagram) showing relationships between diet types and environmental impacts"""
+    # Get descriptions for environmental impact indicators
     impact_descriptions = get_env_impact_description()
     diet_colors = get_diet_colors()
     
-    # 选择主要的环境影响指标
+    # Select main environmental impact indicators
     selected_impacts = ['mean_ghgs', 'mean_land', 'mean_watuse', 'mean_bio']
     selected_labels = [impact_descriptions[col] for col in selected_impacts]
     
-    # 桑基图需要源-目标-值的格式
+    # Sankey diagram requires source-target-value format
     sankey_data = []
     
-    # 添加饮食类型到环境影响指标的连接
+    # Add connections between diet types and environmental impacts
     for impact_col, impact_label in zip(selected_impacts, selected_labels):
-        # 对当前指标按值排序
+        # Sort by current indicator value
         ranked = diet_data.sort_values(impact_col)
         rank_mapper = {diet: i+1 for i, diet in enumerate(ranked['diet_group'])}
         
@@ -230,9 +230,9 @@ def create_alluvial_diagram(diet_data, output_file='diet_environmental_impact_al
             diet = row['diet_group']
             impact_value = row[impact_col]
             
-            # 标准化值以便更好地展示
+            # Normalize values for better visualization
             normalized_value = (impact_value - diet_data[impact_col].min()) / (diet_data[impact_col].max() - diet_data[impact_col].min())
-            value_weight = 0.3 + 0.7 * normalized_value  # 避免太小的值
+            value_weight = 0.3 + 0.7 * normalized_value  # Prevent too small values
             
             sankey_data.append({
                 'source': diet,
@@ -241,21 +241,21 @@ def create_alluvial_diagram(diet_data, output_file='diet_environmental_impact_al
                 'rank': rank_mapper[diet]
             })
     
-    # 创建源和目标的节点列表
+    # Create node and target lists
     all_nodes = list(diet_data['diet_group'].unique()) + selected_labels
     node_indices = {node: i for i, node in enumerate(all_nodes)}
     
-    # 创建链接数据
+    # Create link data
     links = []
     for item in sankey_data:
         links.append({
             'source': node_indices[item['source']],
             'target': node_indices[item['target']],
-            'value': item['value'] * 5,  # 乘以5以增强可视效果
+            'value': item['value'] * 5,  # Scale values for better visibility
             'customdata': [item['rank']]
         })
     
-    # 创建节点数据
+    # Create node data
     nodes = []
     for node in all_nodes:
         if node in diet_colors:
@@ -268,7 +268,7 @@ def create_alluvial_diagram(diet_data, output_file='diet_environmental_impact_al
             'color': color
         })
     
-    # 创建桑基图
+    # Create Sankey diagram
     fig = go.Figure(data=[go.Sankey(
         node=dict(
             pad=15,
@@ -282,91 +282,92 @@ def create_alluvial_diagram(diet_data, output_file='diet_environmental_impact_al
             target=[link['target'] for link in links],
             value=[link['value'] for link in links],
             customdata=[link['customdata'] for link in links],
-            hovertemplate='从 %{source.label} 到 %{target.label}<br>'
-                          '影响程度: %{value:.2f}<br>'
-                          '排名: %{customdata[0]}<extra></extra>'
+            hovertemplate='From %{source.label}<br>'
+                          'To %{target.label}<br>'
+                          'Impact Value: %{value:.2f}<br>'
+                          'Rank: %{customdata[0]}<extra></extra>'
         )
     )])
     
-    # 设置布局
+    # Set layout
     fig.update_layout(
-        title_text="饮食类型与环境影响的关系流图",
+        title_text="Diet-Environmental Impact Relationship Flowchart",
         font_size=12,
         height=600,
         width=900
     )
     
-    # 保存为HTML文件，以支持交互
+    # Save as HTML file for interactivity
     fig.write_html(f"{OUTPUT_DIR}/{output_file}")
     
-    print(f"冲积图已保存到 {OUTPUT_DIR}/{output_file}")
+    print(f"Sankey diagram saved to {OUTPUT_DIR}/{output_file}")
     return fig
 
-# ============== 主函数 ==============
+# ============== Main Function ==============
 
 def analyze_all_csv_files():
-    """分析当前目录下的所有CSV文件"""
-    # 获取当前目录下的所有CSV文件
+    """Analyze all CSV files in current directory"""
+    # Get all CSV files in current directory
     csv_files = [f for f in os.listdir('.') if f.endswith('.csv')]
     
     if not csv_files:
-        print("当前目录下没有找到CSV文件。")
+        print("No CSV files found in current directory.")
         return None
     
-    print(f"找到以下CSV文件: {', '.join(csv_files)}")
-    print(f"默认分析所有 {len(csv_files)} 个CSV文件...")
+    print(f"Found CSV files: {', '.join(csv_files)}")
+    print(f"Defaulting to analyze all {len(csv_files)} files...")
     
-    # 分析所有CSV文件
+    # Analyze all CSV files
     for file in csv_files:
         analyze_csv_file(file)
     
-    # 返回第一个CSV文件的路径
+    # Return path to first CSV file
     return csv_files[0]
 
 def run_analysis():
-    """运行完整的数据分析、处理和可视化流程"""
-    # 创建输出目录
+    """Run complete data analysis, processing, and visualization workflow"""
+    # Create output directories
     for directory in [ANALYSIS_RESULTS_DIR, PROCESSED_DATA_DIR, OUTPUT_DIR]:
         if not os.path.exists(directory):
             os.makedirs(directory)
     
     try:
-        # 首先分析数据
-        print("\n===== 步骤1：基础数据分析 =====")
+        # Step 1: Basic data analysis
+        print("\n===== Step 1: Basic Data Analysis =====")
         first_csv = analyze_all_csv_files()
         
-        # 然后处理数据
-        print("\n===== 步骤2：高级数据处理 =====")
+        # Step 2: Advanced data processing
+        print("\n===== Step 2: Advanced Data Processing =====")
         if first_csv:
-            # 尝试读取已处理的数据
+            # Try to read existing processed data
             try:
-                print("尝试读取已处理的数据...")
+                print("Attempting to read processed data...")
                 diet_data = pd.read_csv(f"{PROCESSED_DATA_DIR}/diet_data.csv")
-                print("成功读取处理后的数据")
+                print("Successfully loaded processed data")
             except FileNotFoundError:
-                # 如果找不到处理后的数据，则重新处理
-                print("找不到处理后的数据，开始处理...")
+                # Process data if not found
+                print("Processed data not found. Starting processing...")
                 _, processed_data = load_and_process_data(first_csv)
                 save_processed_data(processed_data)
                 
-                # 读取处理后的数据
+                # Load processed data
                 diet_data = pd.read_csv(f"{PROCESSED_DATA_DIR}/diet_data.csv")
             
-            # 最后创建可视化
-            print("\n===== 步骤3：数据可视化 =====")
-            print("创建冲积图(桑基图)...")
+            # Step 3: Create visualizations
+            print("\n===== Step 3: Data Visualization =====")
+            print("Creating Sankey diagram...")
             create_alluvial_diagram(diet_data)
             
-            print("\n所有操作已完成!")
-            print(f"- 分析结果保存在: {ANALYSIS_RESULTS_DIR}")
-            print(f"- 处理后的数据保存在: {PROCESSED_DATA_DIR}")
-            print(f"- 可视化结果保存在: {OUTPUT_DIR}")
+            print("\nAll operations completed!")
+            print(f"- Analysis results saved to: {ANALYSIS_RESULTS_DIR}")
+            print(f"- Processed data saved to: {PROCESSED_DATA_DIR}")
+            print(f"- Visualizations saved to: {OUTPUT_DIR}")
     
     except Exception as e:
-        print(f"发生错误: {e}")
+        print(f"Error occurred: {e}")
         import traceback
         traceback.print_exc()
 
 if __name__ == "__main__":
     run_analysis()
-    print("\n完成！请查看生成的结果。") 
+    print("\nComplete! Please check the generated results.")
